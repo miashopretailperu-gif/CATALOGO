@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MiaShop - Catálogo Oficial</title>
+  
+  <!-- Manifest & PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#7D5A94">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Spectral:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #FDFBFD;
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+    .font-magic {
+      font-family: 'Spectral', serif;
+    }
+    .btn-large {
+      min-height: 54px;
+    }
+    .fade-carousel-img {
+      transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    }
+    .fade-out-left {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    .fade-in {
+      opacity: 1;
+      transform: scale(1);
+    }
+    
+    /* Burbuja de diálogo de la mascota */
+    .speech-bubble-top {
+      position: relative;
+      background: #ffffff;
+      border: 2px solid #D6C2E2;
+    }
+    .speech-bubble-top:after, .speech-bubble-top:before {
+      top: 100%;
+      left: 50%;
+      border: solid transparent;
+      content: " ";
+      height: 0;
+      width: 0;
+      position: absolute;
+      pointer-events: none;
+    }
+    .speech-bubble-top:after {
+      border-color: rgba(255, 255, 255, 0);
+      border-top-color: #ffffff;
+      border-width: 8px;
+      margin-left: -8px;
+    }
+    .speech-bubble-top:before {
+      border-color: rgba(214, 194, 226, 0);
+      border-top-color: #D6C2E2;
+      border-width: 10px;
+      margin-left: -10px;
+    }
+
+    /* ==================== MODO NOCTURNO: GALAXIA ==================== */
+    body.dark-mode {
+      background: linear-gradient(-45deg, #0a0118, #0d0221, #0a0118, #110133) !important;
+      color: #e0d0ff !important;
+    }
+    body.dark-mode header, body.dark-mode nav {
+      background-color: rgba(13, 2, 33, 0.96) !important;
+      border-color: rgba(201, 162, 39, 0.2) !important;
+    }
+    body.dark-mode .bg-white:not(.twinkle-star) {
+      background-color: rgba(20, 5, 50, 0.88) !important;
+      color: #e0d0ff !important;
+      border-color: rgba(201, 162, 39, 0.2) !important;
+    }
+    body.dark-mode .border-purple-100, body.dark-mode .border-purple-200 {
+      border-color: rgba(125, 90, 148, 0.3) !important;
+    }
+    body.dark-mode p, body.dark-mode span, body.dark-mode h4, body.dark-mode label, body.dark-mode td {
+      color: #c8b8ee !important;
+    }
+    body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 {
+      color: #e9d5ff !important;
+    }
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+      background: rgba(30, 10, 60, 0.8) !important;
+      color: #e0d0ff !important;
+      border-color: rgba(125, 90, 148, 0.4) !important;
+    }
+    body.dark-mode .bg-purple-50\/40, body.dark-mode .bg-purple-50\/50 {
+      background-color: rgba(30, 10, 60, 0.4) !important;
+    }
+    body.dark-mode main {
+      background: transparent !important;
+      z-index: auto !important;
+      position: static !important;
+    }
+    /* Estrellas animadas */
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    .twinkle-star {
+      animation: twinkle 4s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="pb-24 text-gray-800">
+
+  <!-- Contenedor de Estrellas para el Modo Nocturno -->
+  <div id="night-stars-container" class="fixed inset-0 pointer-events-none overflow-hidden hidden" style="z-index: 35;"></div>
+
+  <!-- ==================== HEADER (SOL/LUNA CONTROL DE MODO - CARRITO COMPACTO) ==================== -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur shadow-sm border-b border-purple-100">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <button onclick="toggleModoNocturnoManual()" id="btn-modo-icon" class="text-2xl cursor-pointer select-none hover:scale-110 transition-transform" title="Cambiar Modo de Luz">
+          ☀️
+        </button>
+        <h1 class="font-magic text-2xl font-bold text-[#7D5A94]">MiaShop</h1>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSonido()" id="btn-sonido" class="p-2 text-2xl hover:bg-purple-50 rounded-full transition-colors">
+          🔊
+        </button>
+        <!-- Carrito Compacto Circular sin Texto -->
+        <button onclick="cambiarSeccion('carrito')" class="relative flex items-center justify-center bg-[#7D5A94] text-white w-12 h-12 rounded-full hover:bg-[#6a4c7e] transition-all">
+          <span class="text-2xl">🛒</span>
+          <span id="carrito-contador" class="absolute -top-1.5 -right-1.5 bg-[#F2846B] text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
+  <main class="max-w-4xl mx-auto px-4 py-4 relative z-10">
+    
+    <!-- PANTALLA: CATÁLOGO -->
+    <section id="sec-catalogo" class="space-y-6 block">
+      
+      <!-- Banner de Bienvenida inteligente -->
+      <div id="banner-principal" class="bg-gradient-to-r from-[#7D5A94] to-[#F2846B] text-white p-6 rounded-3xl shadow-md flex items-center justify-center min-h-[140px] relative overflow-hidden transition-all duration-700">
+        
+        <!-- Vista Inicial: Texto "Importaciones MiaShop" -->
+        <div id="banner-vista-texto" class="text-center space-y-2 z-10 transition-opacity duration-700">
+          <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">On-Demand</span>
+          <h2 class="font-magic text-3xl font-bold">Importaciones MiaShop</h2>
+          <p class="text-base text-purple-100 max-w-sm mx-auto">Explora las últimas tendencias seleccionadas especialmente para ti. Pide hoy y recíbelo cómodamente.</p>
+        </div>
+        
+        <!-- Vista Secundaria: Carrusel a Pantalla Completa (Se activa tras 2.5s) -->
+        <div id="banner-vista-carousel" class="absolute inset-0 w-full h-full opacity-0 hidden transition-opacity duration-700">
+          <img id="carousel-img" src="" class="w-full h-full object-cover fade-carousel-img" alt="Producto del catálogo">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 flex items-end p-4">
+            <span class="bg-[#7D5A94] text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm z-10 uppercase">✨ Tendencia MiaShop</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtro por Categorías -->
+      <div class="space-y-2">
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Categorías de Productos</span>
+        <div id="categorias-scroll" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <button onclick="filtrarCategoria('Todas')" class="cat-btn bg-[#7D5A94] text-white px-5 py-2 rounded-full text-base font-semibold whitespace-nowrap border border-[#7D5A94]">Todas</button>
+        </div>
+      </div>
+
+      <!-- Buscador Simple -->
+      <div class="relative">
+        <input type="text" id="input-busqueda" oninput="filtrarPorBusqueda()" placeholder="🔍 Buscar por nombre de producto..." class="w-full px-5 py-4 rounded-2xl border-2 border-purple-100 focus:border-[#7D5A94] outline-none text-lg font-medium shadow-sm transition-all">
+      </div>
+
+      <!-- Estado de carga -->
+      <div id="catalogo-cargando" class="text-center py-10 space-y-3">
+        <span class="text-5xl animate-spin inline-block">🪄</span>
+        <p class="text-base text-gray-500 font-medium">Consultando el catálogo con Apps Script...</p>
+      </div>
+
+      <!-- Rejilla de Productos -->
+      <div id="catalogo-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6 hidden"></div>
+    </section>
+
+    <!-- PANTALLA: CARRITO ("MI COMPRA") -->
+    <section id="sec-carrito" class="space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-purple-100 pb-4 gap-4">
+        <h2 class="font-magic text-2xl font-bold text-[#7D5A94]">📋 Mi Carrito de Compras</h2>
+        <button onclick="vaciarCarrito()" class="text-sm text-red-500 hover:underline font-semibold text-left flex items-center gap-1">
+          🗑️ Vaciar Carrito
+        </button>
+      </div>
+
+      <!-- Mascota MIMI Compacta (Mensaje ARRIBA del gatito - Temporizada a 10s) -->
+      <div id="mascota-contenedor" class="flex flex-col items-center justify-center py-2 max-w-sm mx-auto hidden transition-all duration-700 overflow-hidden">
+        <!-- Burbuja de diálogo arriba -->
+        <div class="speech-bubble-top relative bg-white border-2 border-purple-200 text-[#7D5A94] text-sm font-semibold px-4 py-2.5 rounded-2xl shadow-sm text-center max-w-xs mb-3">
+          <span id="mascota-frase">¡Qué excelente elección! Es uno de nuestros favoritos.</span>
+        </div>
+        <!-- Gatito abajo -->
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+          <span class="text-4xl inline-block animate-bounce" style="animation-duration: 3s;">🐱✨</span>
+          <span class="text-xs font-extrabold text-purple-400">MIMI</span>
+        </div>
+      </div>
+
+      <!-- Lista de Productos en el Carrito -->
+      <div id="carrito-lista" class="space-y-4"></div>
+
+      <!-- Detalle de Importes -->
+      <div id="carrito-totales" class="bg-purple-50/50 p-6 rounded-2xl border border-purple-100 space-y-3 hidden">
+        <div class="flex justify-between items-center text-base font-medium text-gray-500">
+          <span>Subtotal estimado</span>
+          <span id="totales-subtotal">S/ 0.00</span>
+        </div>
+        <div class="flex justify-between items-center text-xl font-bold text-gray-800 border-t border-purple-100 pt-3">
+          <span>Total a Pagar</span>
+          <span id="totales-total" class="text-[#F2846B]">S/ 0.00</span>
+        </div>
+        
+        <!-- Botón de Registro de Pedido -->
+        <div class="pt-4">
+          <button onclick="abrirModalCheckout()" class="w-full btn-large bg-[#F2846B] hover:bg-[#e0725a] text-white font-bold text-lg py-3.5 px-6 rounded-2xl transition-all shadow-md flex items-center justify-center gap-2">
+            ✨ Registrar mi Pedido y continuar
+          </button>
+        </div>
+      </div>
+
+      <!-- Estado Carrito Vacío -->
+      <div id="carrito-vacio" class="text-center py-16 space-y-4">
+        <span class="text-6xl">🛍️</span>
+        <h3 class="font-magic text-2xl font-bold text-gray-500">Tu cesta está vacía</h3>
+        <p class="text-base text-gray-400">Regresa al catálogo y selecciona tus productos favoritos.</p>
+        <button onclick="cambiarSeccion('catalogo')" class="bg-[#7D5A94] text-white px-6 py-3 rounded-full text-base font-semibold shadow">Ir a Ver Productos</button>
+      </div>
+    </section>
+
+    <!-- PANTALLA: SEGUIMIENTO & HISTORIAL -->
+    <section id="sec-pedidos" class="space-y-6 hidden">
+      <div class="border-b border-purple-100 pb-4">
+        <h2 class="font-magic text-2xl font-bold text-[#7D5A94]">🚚 Consulta de Pedidos</h2>
+        <p class="text-sm text-gray-500">Introduce tu documento de identidad para conocer el estado actual y ver tus boletas.</p>
+      </div>
+
+      <!-- Buscador de DNI Centrado y con Ancho Controlado -->
+      <div class="bg-white p-6 rounded-3xl border border-purple-100 space-y-4 max-w-sm mx-auto shadow-sm">
+        <div class="space-y-2">
+          <label class="block text-sm font-bold text-[#7D5A94] uppercase text-center">Introduce tu DNI de Clienta</label>
+          <div class="flex flex-col gap-2">
+            <input type="number" id="input-dni-consulta" placeholder="Ej: 45678912" class="w-full px-4 py-3 rounded-xl border border-purple-200 outline-none focus:border-[#7D5A94] text-center text-lg font-bold tracking-wider">
+            <button onclick="consultarPedidosDNI()" class="w-full bg-[#7D5A94] hover:bg-[#68497d] text-white px-6 py-3.5 rounded-xl font-semibold transition-colors btn-large text-base">Consultar Pedido</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loader de Consulta -->
+      <div id="consulta-loader" class="text-center py-12 hidden">
+        <span class="text-5xl animate-spin inline-block">🔮</span>
+        <p class="text-sm text-gray-400 mt-2">Buscando tus pedidos en el pergamino...</p>
+      </div>
+
+      <!-- Selector de Pestañas (Tabs) de Pedidos (Separador inteligente para reducir carga cognitiva) -->
+      <div id="tabs-pedidos-container" class="hidden flex border-b border-purple-100 max-w-md mx-auto mt-4">
+        <button onclick="cambiarTabPedidos('activos')" id="tab-pedidos-activos" class="flex-1 py-3 text-center border-b-2 font-bold text-sm transition-all focus:outline-none border-[#7D5A94] text-[#7D5A94]">
+          ⏳ En Camino (<span id="count-activos">0</span>)
+        </button>
+        <button onclick="cambiarTabPedidos('historial')" id="tab-pedidos-historial" class="flex-1 py-3 text-center border-b-2 font-bold text-sm transition-all focus:outline-none border-transparent text-gray-400">
+          📜 Entregados (<span id="count-historial">0</span>)
+        </button>
+      </div>
+
+      <!-- Lista de Pedidos Encontrados -->
+      <div id="consulta-resultados" class="space-y-6 hidden">
+        
+        <!-- Saludo Personalizado para la Clienta -->
+        <div id="greeting-container" class="hidden text-center py-2">
+          <p id="greeting-text" class="text-base text-gray-600 font-medium"></p>
+        </div>
+
+        <!-- Panel Pedidos Activos -->
+        <div id="panel-pedidos-activos" class="space-y-4 block">
+          <div id="lista-pedidos-activos" class="space-y-6"></div>
+        </div>
+
+        <!-- Panel Historial y Boletas -->
+        <div id="panel-pedidos-historial" class="space-y-4 hidden">
+          <div id="lista-pedidos-historial" class="space-y-4"></div>
+        </div>
+      </div>
+      
+      <div id="consulta-vacio" class="text-center py-10 border border-dashed border-purple-200 rounded-3xl text-gray-400 italic text-base hidden">
+        No se encontraron pedidos vigentes ni boletas archivadas bajo este DNI.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== BARRA DE NAVEGACIÓN MÓVIL ==================== -->
+  <nav class="fixed bottom-0 left-0 w-full bg-white border-t border-purple-100 shadow-xl z-40">
+    <div class="max-w-4xl mx-auto flex justify-between items-center h-20 px-4 gap-2">
+      <button onclick="cambiarSeccion('catalogo')" id="nav-catalogo" class="flex-1 flex flex-col items-center justify-center py-2 text-gray-400 hover:text-[#7D5A94] scale-95 transition-all duration-150 ease-in-out">
+        <span class="text-2xl">🏠</span>
+        <span class="text-xs font-bold mt-1 uppercase">Catálogo</span>
+      </button>
+      <button onclick="cambiarSeccion('carrito')" id="nav-carrito" class="flex-1 flex flex-col items-center justify-center py-2 text-gray-400 hover:text-[#7D5A94] scale-95 transition-all duration-150 ease-in-out">
+        <span class="text-2xl">🛒</span>
+        <span class="text-xs font-bold mt-1 uppercase">Mi Compra</span>
+      </button>
+      <button onclick="cambiarSeccion('pedidos')" id="nav-pedidos" class="flex-1 flex flex-col items-center justify-center py-2 text-gray-400 hover:text-[#7D5A94] scale-95 transition-all duration-150 ease-in-out">
+        <span class="text-2xl">🚚</span>
+        <span class="text-xs font-bold mt-1 uppercase">Seguimiento</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ==================== MODAL: DETALLES DE PRODUCTO ==================== -->
+  <div id="modal-detalle-producto" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5 border border-purple-100 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Cabecera modal de detalles -->
+      <div class="flex justify-between items-center border-b pb-3 border-purple-100">
+        <h4 id="det-modal-titulo" class="font-magic text-xl font-bold text-[#7D5A94]">Detalles del Producto</h4>
+        <button onclick="cerrarModalDetalle()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none">&times;</button>
+      </div>
+
+      <!-- Imagen Principal de Detalle -->
+      <div class="w-full h-64 rounded-2xl overflow-hidden bg-purple-50 flex items-center justify-center relative">
+        <img id="det-img-principal" src="" class="w-full h-full object-cover" alt="Detalle del producto">
+      </div>
+
+      <!-- Miniaturas de Galería -->
+      <div id="det-galeria-miniaturas" class="flex gap-2 overflow-x-auto pb-1 scrollbar-none"></div>
+
+      <!-- Detalles de Texto -->
+      <div id="det-bloque-texto" class="space-y-2">
+        <span id="det-sku-cat" class="text-xs font-bold text-[#7D5A94] uppercase tracking-widest"></span>
+        <h3 id="det-nombre" class="font-magic text-2xl font-bold text-[#7D5A94] leading-tight"></h3>
+        <p id="det-precio" class="text-2xl font-extrabold text-[#F2846B]"></p>
+        <div id="det-descripcion-bloque" class="border-t border-purple-50 pt-2">
+          <p class="text-xs font-bold text-gray-400 uppercase mb-1">Descripción</p>
+          <p id="det-descripcion" class="text-base text-gray-600 leading-relaxed whitespace-pre-line"></p>
+        </div>
+      </div>
+
+      <!-- Botonera de Compra y Botón de Regresar Ampliado -->
+      <div class="flex gap-3 pt-2">
+        <button onclick="cerrarModalDetalle()" class="flex-1 py-3.5 border border-purple-200 text-[#7D5A94] rounded-xl font-bold text-base bg-purple-50 hover:bg-purple-100 transition-colors btn-large">
+          ⬅️ Regresar
+        </button>
+        <button id="det-btn-comprar" class="flex-1 py-3.5 bg-[#7D5A94] hover:bg-[#68497d] text-white font-bold text-base rounded-xl transition-all shadow-md btn-large">
+          🛒 Comprar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CHECKOUT SIMPLIFICADO (SOLO DNI) ==================== -->
+  <div id="modal-checkout" class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4 border border-purple-100">
+      <div class="flex justify-between items-center border-b pb-3 border-purple-50">
+        <h3 class="font-magic text-xl font-bold text-[#7D5A94]">Verificación</h3>
+        <button onclick="cerrarModalCheckout()" class="text-gray-400 text-2xl font-bold hover:text-gray-600 leading-none">&times;</button>
+      </div>
+      
+      <div class="space-y-3">
+        <p class="text-sm text-gray-500 leading-relaxed text-center font-medium">Para completar tu orden, ingresa tu DNI. Sincronizaremos tus datos automáticamente.</p>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1 text-center">DNI / RUC de Clienta</label>
+          <input type="number" id="form-dni" placeholder="Ingresa tu número de identidad" class="w-full px-4 py-3 rounded-xl border border-purple-100 outline-none focus:border-[#7D5A94] text-center text-lg font-bold tracking-wider transition-all" required>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-3">
+        <button onclick="cerrarModalCheckout()" class="flex-1 py-3.5 border border-purple-200 text-gray-500 rounded-xl font-semibold text-base hover:bg-gray-50">Atrás</button>
+        <button id="btn-procesar-checkout" onclick="procesarConfirmacionPedido()" class="flex-1 py-3 bg-[#F2846B] text-white rounded-xl font-bold text-base hover:bg-[#e0725a] transition-colors shadow-sm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE CONFIRMACIÓN DE AGREGADO ==================== -->
+  <div id="modal-confirmacion" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4 border border-purple-100">
+      <div class="text-center">
+        <span class="text-5xl">🛍️</span>
+        <h4 class="font-magic text-xl font-bold text-[#7D5A94] mt-2">¿Confirmamos la selección?</h4>
+        <p class="text-sm text-gray-500 mt-1 leading-relaxed">¿Deseas agregar <span id="conf-prod-nombre" class="font-bold text-gray-800"></span> a tu pedido?</p>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="cerrarModalConfirmacion()" class="flex-1 py-3 border border-purple-200 text-gray-500 rounded-xl font-semibold text-base hover:bg-gray-50 transition-colors">Cancelar</button>
+        <button id="btn-confirmar-add" class="flex-1 py-3 bg-[#F2846B] text-white rounded-xl font-bold text-base hover:bg-[#e0725a] transition-colors shadow-sm">Sí, agregar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CLIENTE NO REGISTRADO ==================== -->
+  <div id="modal-no-registrado" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/55 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center space-y-4 border border-purple-100">
+      <span class="text-5xl">✨</span>
+      <h4 class="font-magic text-xl font-bold text-[#7D5A94]">¡Hola! Aún no eres parte</h4>
+      <p class="text-sm text-gray-500 leading-relaxed px-2">
+        Al momento no te encuentras registrada en la Familia de MiaShop. ¿Te gustaría registrarte para poder completar tu compra y acceder a todas nuestras novedades?
+      </p>
+      <div class="flex gap-3 pt-2">
+        <button onclick="cerrarModalNoRegistrado()" class="flex-1 py-3 border border-purple-200 text-gray-500 rounded-xl font-semibold text-base hover:bg-gray-50 transition-colors">
+          Cancelar
+        </button>
+        <button onclick="redirigirRegistroWhatsApp()" class="flex-1 py-3 bg-[#F2846B] text-white rounded-xl font-bold text-base hover:bg-[#e0725a] transition-colors shadow-sm">
+          Sí, unirme
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL GENERACIÓN DE BOLETA ==================== -->
+  <div id="modal-boleta" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-6 border border-purple-100 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-dashed border-purple-200 pb-3">
+        <div>
+          <h4 class="font-magic text-xl font-bold text-[#7D5A94]">✨ COMPROBANTE</h4>
+          <p class="text-[10px] text-gray-400 tracking-wider">MiaShop - Importación</p>
+        </div>
+        <button onclick="cerrarModalBoleta()" class="text-gray-400 text-2xl font-bold hover:text-gray-600">&times;</button>
+      </div>
+      
+      <div class="space-y-3 text-xs font-mono bg-purple-50/20 p-4 rounded-xl border border-purple-50">
+        <div class="flex justify-between"><span>BOLETA ID:</span><span id="bol-id" class="font-bold"></span></div>
+        <div class="flex justify-between"><span>FECHA:</span><span id="bol-fecha"></span></div>
+        <div class="flex justify-between"><span>DNI CLIENTA:</span><span id="bol-dni"></span></div>
+        <div class="flex justify-between"><span>COMPRADORA:</span><span id="bol-nombre"></span></div>
+        <div class="flex justify-between"><span>ESTADO:</span><span class="text-emerald-600 font-bold">✅ ENTREGADO</span></div>
+        <div class="border-b border-dashed border-gray-300 my-2"></div>
+        
+        <div class="space-y-1">
+          <p class="font-bold text-gray-500">DETALLE DE COMPRA:</p>
+          <div id="bol-items" class="space-y-1"></div>
+        </div>
+        
+        <div class="border-b border-dashed border-gray-300 my-2"></div>
+        <div class="flex justify-between text-sm font-bold text-[#7D5A94]">
+          <span>Monto Cobrado:</span>
+          <span id="bol-total"></span>
+        </div>
+      </div>
+      
+      <button onclick="window.print()" class="w-full bg-[#7D5A94] hover:bg-[#68497d] text-white py-3 rounded-xl text-xs font-bold transition-all shadow-md">
+        🖨️ Imprimir / Guardar en PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: ESPERA / PROCESANDO BOLETA ==================== -->
+  <div id="modal-espera-boleta" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center space-y-3 border border-purple-100">
+      <span class="text-4xl animate-spin inline-block">⏳</span>
+      <h4 class="font-magic text-lg font-bold text-[#7D5A94]">Estamos construyendo tu boleta...</h4>
+      <p class="text-sm text-gray-500 leading-relaxed">Por favor, espera unos segundos. ✨</p>
+    </div>
+  </div>
+
+  <!-- ==================== CÓDIGO JS INTEGRAL ==================== -->
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyGMVq7Ricbcjy5Hcnwg2frnOr9MbsSelytAdI_YWEF4HAorDJfy_ZA5_BRGvdMO-ik/exec";
+
+    // Variables de Estado de la Aplicación
+    let catalogoProductos = [];
+    let categoriasLocal = [];
+    let carrito = [];
+    let pedidosConsultados = []; // Memoria caché local para evitar peticiones redundantes e incompatibilidades en Safari/iPhone
+    let activeTabPedidos = 'activos'; // Control de la pestaña activa de seguimiento
+    
+    // FUNCIONES DE CONTROL DE SEGURIDAD PARA STORAGE EN NAVEGADORES PRIVADOS DE IOS
+    function safeStorageSet(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e) {
+        console.warn("Storage item write blocked:", e);
+      }
+    }
+
+    function safeStorageGet(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        console.warn("Storage item read blocked:", e);
+        return null;
+      }
+    }
+
+    function safeStorageRemove(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        console.warn("Storage item remove blocked:", e);
+      }
+    }
+
+    // VALIDACIÓN DE SEGURIDAD ABSOLUTA AL CARGAR MEMORIA
+    try {
+      const rawCart = safeStorageGet('mia_catalog_cart');
+      const parsed = JSON.parse(rawCart);
+      if (Array.isArray(parsed)) {
+        carrito = parsed;
+      }
+    } catch(e) {
+      carrito = [];
+      safeStorageSet('mia_catalog_cart', JSON.stringify([]));
+    }
+    
+    let soundEnabled = true;
+    try {
+      soundEnabled = safeStorageGet('mia_sound_enabled') !== '0';
+    } catch(e) {}
+
+    let categoriaSeleccionada = 'Todas';
+    let productoPorAgregar = null;
+    let indexCarousel = 0;
+    let intervalCarousel = null;
+    let mimiTimer = null; 
+    let audioCtxShared = null; 
+    let modoNocturnoManual = safeStorageGet('mia_modo_nocturno_manual'); 
+
+    // Frases de Refuerzo Positivo para la Mascota MIMI
+    const frasesMascota = [
+      "¡Qué excelente elección! Es uno de nuestros favoritos.",
+      "¡Tienes un gusto increíble! Este pedido te va a encantar.",
+      "¡Qué gran ojo tienes para la calidad! Te felicito de corazón.",
+      "¡Este producto es espectacular! Te aseguro que te lucirá genial.",
+      "¡Una decisión muy inteligente! Calidad y belleza en un solo pedido.",
+      "¡Me alegra tanto ver esto en tu carrito! Te va a encantar.",
+      "¡Precioso! Realmente sabes cómo seleccionar lo mejor.",
+      "¡Una maravilla de elección! Este producto tiene un acabado único.",
+      "¡Qué buena elección has hecho, te felicito de corazón!",
+      "¡Perfecto! Un producto diseñado para deslumbrar.",
+      "¡Esto es una joya de buen gusto! Te hace muy feliz que lo leves.",
+      "¡Muy bien pensado! Es un artículo súper útil y hermoso.",
+      "¡Qué estilo tienes! Tus elecciones siempre son de primer nivel.",
+      "¡Es bellísimo! Te aseguro que recibirás muchos cumplidos.",
+      "¡Gran elección! Es uno de los productos más elogiados por nuestras clientas.",
+      "¡Excelente gusto! Le dará un toque mágico a tu día a día.",
+      "¡Lindo detalle! Este producto transmite muchísima calidez.",
+      "¡Una compra inteligente! Disfrutarás este producto cada segundo.",
+      "¡Me fascina tu carrito! Cada pieza es perfecta.",
+      "¡Qué elegancia! Un artículo que marca la diferencia.",
+      "¡Magnífica compra! Cumple con todo lo que necesitas y más.",
+      "¡Vaya combinación de belleza y utilidad! Te felicito.",
+      "¡Espectacular! Has elegido un producto súper exclusivo.",
+      "¡Es un tesoro! Me encanta que lo hayas elegido hoy.",
+      "¡Qué acierto! Este producto resolverá tus necesidades con estilo.",
+      "¡Una obra de arte! Su diseño es simplemente encantador.",
+      "¡No te arrepentirás de esta compra, es fabulosa!",
+      "¡Encantador! Es el complemento perfecto para tu colección.",
+      "¡Qué gran decisión! Un producto que realmente vale oro.",
+      "¡Fabuloso! Destaca por su gran diseño y practicidad.",
+      "¡Es una delicia ver tu carrito! Tienes un gusto fenomenal.",
+      "¡Qué bien se siente elegir calidad! Has hecho una compra de diez.",
+      "¡Súper recomendado! Te aseguro una satisfacción total.",
+      "¡Este producto tiene un encanto único! Muy buena elección.",
+      "¡Qué alegría! Has seleccionado un artículo de primer nivel.",
+      "¡Un artículo maravilloso! Ideal para alguien con tu estilo.",
+      "¡Un acierto absoluto! Es de lo más pedido del mes.",
+      "¡Brillante elección! Práctico, estético y de gran durabilidad.",
+      "¡Sencillamente perfecto! No podías haber escogido algo mejor.",
+      "¡Qué gran día de compras! Tus selecciones son impecables.",
+      "¡Esto te va a encantar! Es una de nuestras mayores recomendaciones.",
+      "¡Estilo y buen gusto en un solo pedido! Me fascina.",
+      "¡Tu carrito brilla hoy! Qué hermosos productos elegiste.",
+      "¡Te felicito! Has optado por un producto con un estándar muy alto.",
+      "¡Qué detalle tan especial! Marcando tendencia como siempre.",
+      "¡Felicidades por tu compra! Es una fantástica adquisición.",
+      "¡Único y original! Este producto complementará todo lo que tienes.",
+      "¡Me encanta tu compra! Es un producto súper especial.",
+      "¡Excelente ojo! La relación calidad-precio aquí es maravillosa.",
+      "¡Qué felicidad! Te aseguro que disfrutarás abrir este paquete.",
+      "¡Definitivamente una de tus mejores elecciones de la temporada!",
+      "¡La magia de MiaShop te acompañará con este hermoso producto!",
+      "¡Qué gran gusto! Te aseguro que tus conocidas te preguntarán dónde lo compraste.",
+      "¡Este artículo es toda una experiencia! Te fascinará tenerlo.",
+      "¡La combinación perfecta de modernidad y buen gusto!",
+      "¡Qué gran elección! Ideal para renovar tus espacios o tu estilo.",
+      "¡Muy buena compra! Es un producto que destaca a simple vista.",
+      "¡Hermosa selección! Hecha con el corazón para alguien como tú.",
+      "¡Este producto es un clásico que nunca falla! Magnífico gusto.",
+      "¡Qué acierto tan grande! Un producto que facilitará tu rutina.",
+      "¡Me encanta! Un artículo diseñado para complacer el gusto más exigente.",
+      "¡Esto te va a traer muchísima felicidad, te lo garantizo!",
+      "¡Perfecto para engreírte hoy! Te lo mereces por completo.",
+      "¡Qué gusto tan fino! Tus selecciones hablan de tu gran personalidad.",
+      "¡Una adquisición fantástica! Calidad duradera y hermosa.",
+      "¡Qué gran adquisición! Te aseguro que superará tus expectativas.",
+      "¡Una compra de la que te sentirás muy orgullosa! Excelente.",
+      "¡Precioso detalle! Este producto es pura distinción.",
+      "¡Qué maravilla de producto! Todo un acierto comercial.",
+      "¡Una lección de buen gusto! Tu carrito es un ejemplo de estilo.",
+      "¡Es una preciosidad! Ideal para complementar tu hogar con elegancia.",
+      "¡Muy inteligente de tu parte elegir este producto hoy!",
+      "¡Qué selección tan sobresaliente! Has escogido con sabiduría.",
+      "¡Un primer nivel de buen gusto! Excelente combinación.",
+      "¡Es una verdadera joya de buen gusto! Te aseguro que querrás pedir otro pronto.",
+      "¡Qué decisión tan acertada! Un producto sumamente elegante.",
+      "¡Maravillosa elección! Un producto lleno de detalles encantadores.",
+      "¡Una compra fantástica! Es de lo más duradero y fino que tenemos.",
+      "¡Qué bien elegiste hoy! Es un producto ideal en todos los sentidos.",
+      "¡Me fascina esta elección! Tiene un acabado sumamente prolijo.",
+      "¡Súper elección! Destaca por su funcionalidad y apariencia de lujo.",
+      "¡Te va a lucir increíble! Un toque mágico para ti.",
+      "¡Qué gran gusto! Has elegido un producto súper exclusivo y moderno.",
+      "¡Una decisión magnífica! Te traerá mucha comodidad y alegría.",
+      "¡Felicidades por tan excelente gusto! Me alegra mucho tu carrito.",
+      "¡Un artículo sumamente distinguido! Excelente adquisición.",
+      "¡Qué gran ojo tienes para lo práctico e innovador! Te felicito.",
+      "¡Es un sueño de producto! Su suavidad y diseño te cautivarán.",
+      "¡Has elegido un tesoro que te acompañará por mucho tiempo!",
+      "¡Qué linda sorpresa te llevarás al recibir esta maravilla!",
+      "¡Me encanta que te consientas con productos tan finos como este!",
+      "¡Has tomado una decisión fantástica, es un producto sensacional!",
+      "¡Una gran compra! No hay duda de que sabes elegir lo mejor.",
+      "¡Qué selección tan bella y oportuna para tu día a día!",
+      "¡Impecable! Un producto de calidad garantizada para tu hogar.",
+      "¡Qué gran gusto tienes! Este producto te lucirá espectacular.",
+      "¡Una elección maravillosa! Hará tu vida mucho más práctica.",
+      "¡Espectacular! Has escogido una de las piezas más finas de nuestra colección.",
+      "¡Qué gran decisión! Un producto súper versátil que te encantará usar.",
+      "¡Excelente gusto! Me alegra que hayas encontrado este producto en MiaShop."
+    ];
+
+    // ==================== SISTEMA AUTOMÁTICO/MANUAL DE MODO NOCTURNO ====================
+    function verificarModoNocturnoAutomatico() {
+      if (modoNocturnoManual !== null) {
+        aplicarModoNocturno(modoNocturnoManual === 'night');
+        return;
+      }
+      const hora = new Date().getHours();
+      const esNocturno = (hora >= 19 || hora < 6);
+      aplicarModoNocturno(esNocturno);
+    }
+
+    function aplicarModoNocturno(activar) {
+      const body = document.body;
+      const btnIcon = document.getElementById('btn-modo-icon');
+      const starsContainer = document.getElementById('night-stars-container');
+
+      if (activar) {
+        body.classList.add('dark-mode');
+        btnIcon.textContent = '🌙'; 
+        starsContainer.classList.remove('hidden');
+        generarEstrellasFondo();
+      } else {
+        body.classList.remove('dark-mode');
+        btnIcon.textContent = '☀️'; 
+        starsContainer.classList.add('hidden');
+        starsContainer.innerHTML = "";
+      }
+    }
+
+    function toggleModoNocturnoManual() {
+      playNavTap();
+      const esNocturnoActual = document.body.classList.contains('dark-mode');
+      const nuevoModo = !esNocturnoActual;
+      
+      modoNocturnoManual = nuevoModo ? 'night' : 'day';
+      safeStorageSet('mia_modo_nocturno_manual', modoNocturnoManual);
+      
+      aplicarModoNocturno(nuevoModo);
+    }
+
+    function generarEstrellasFondo() {
+      const container = document.getElementById('night-stars-container');
+      if (!container) return;
+      container.innerHTML = "";
+      for (let i = 0; i < 80; i++) {
+        const estrella = document.createElement('div');
+        estrella.className = 'twinkle-star absolute bg-white rounded-full';
+        estrella.style.opacity = (Math.random() * 0.3 + 0.15).toString();
+        const size = Math.random() * 3 + 1.5;
+        estrella.style.width = size + 'px';
+        estrella.style.height = size + 'px';
+        estrella.style.top = Math.random() * 100 + '%';
+        estrella.style.left = Math.random() * 100 + '%';
+        estrella.style.animationDelay = (Math.random() * 4) + 's';
+        container.appendChild(estrella);
+      }
+    }
+
+    // ==================== EFECTO INTELIGENTE DEL BANNER ====================
+    function inicializarEfectoBanner() {
+      setTimeout(() => {
+        const vistaTexto = document.getElementById('banner-vista-texto');
+        const vistaCarousel = document.getElementById('banner-vista-carousel');
+        const banner = document.getElementById('banner-principal');
+
+        if (vistaTexto && vistaCarousel) {
+          vistaTexto.classList.add('opacity-0');
+          setTimeout(() => {
+            vistaTexto.classList.add('hidden');
+            vistaCarousel.classList.remove('hidden');
+            setTimeout(() => {
+              vistaCarousel.classList.remove('opacity-0');
+              vistaCarousel.classList.add('opacity-100');
+              banner.classList.remove('p-6'); 
+              banner.classList.add('p-0'); 
+            }, 50);
+          }, 700);
+        }
+      }, 2500);
+    }
+
+    // ==================== MOTOR DE AUDIO COMPARTIDO COMPATIBLE CON IOS ====================
+    function getAudioContextShared() {
+      if (!audioCtxShared) {
+        audioCtxShared = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtxShared && audioCtxShared.state === 'suspended') {
+        audioCtxShared.resume();
+      }
+      return audioCtxShared;
+    }
+
+    function desbloquearAudioIOS() {
+      try {
+        const ctx = getAudioContextShared();
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume().then(() => {
+            window.removeEventListener('click', desbloquearAudioIOS);
+            window.removeEventListener('touchstart', desbloquearAudioIOS);
+          });
+        }
+      } catch (e) {
+        console.warn("No se pudo desbloquear el contexto de audio en iOS:", e);
+      }
+    }
+    window.addEventListener('click', desbloquearAudioIOS, { passive: true });
+    window.addEventListener('touchstart', desbloquearAudioIOS, { passive: true });
+
+    function playChime() {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContextShared();
+        const now = ctx.currentTime;
+        const notas = [523.25, 659.25, 783.99, 1046.50];
+        notas.forEach((freq, index) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + (index * 0.06));
+          
+          gain.gain.setValueAtTime(0, now + (index * 0.06));
+          gain.gain.linearRampToValueAtTime(0.08, now + (index * 0.06) + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + (index * 0.06) + 0.25);
+          
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + (index * 0.06));
+          osc.stop(now + (index * 0.06) + 0.3);
+        });
+      } catch (e) {
+        console.warn("Fallo de audio sintetizado.");
+      }
+    }
+
+    function playNavTap() {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContextShared();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } catch(e){}
+    }
+
+    function toggleSonido() {
+      soundEnabled = !soundEnabled;
+      safeStorageSet('mia_sound_enabled', soundEnabled ? '1' : '0');
+      document.getElementById('btn-sonido').textContent = soundEnabled ? '🔊' : '🔇';
+      if (soundEnabled) {
+        const ctx = getAudioContextShared();
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume();
+        }
+        playChime();
+      }
+    }
+
+    // ==================== CAMBIO DE PANTALLAS (TRANSICIONES OPTIMIZADAS A 150ms) ====================
+    function cambiarSeccion(seccionId) {
+      playNavTap(); 
+      
+      const secciones = ['catalogo', 'carrito', 'pedidos'];
+      secciones.forEach(id => {
+        document.getElementById('sec-' + id).classList.add('hidden');
+        document.getElementById('sec-' + id).classList.remove('block');
+        
+        const navBtn = document.getElementById('nav-' + id);
+        navBtn.className = "flex-1 flex flex-col items-center justify-center py-2 text-gray-400 hover:text-[#7D5A94] scale-95 transition-all duration-150 ease-in-out";
+      });
+
+      document.getElementById('sec-' + seccionId).classList.remove('hidden');
+      document.getElementById('sec-' + seccionId).classList.add('block');
+      
+      const actBtn = document.getElementById('nav-' + seccionId);
+      actBtn.className = "flex-[1.4] flex flex-col items-center justify-center py-2.5 text-[#7D5D99] bg-purple-100/50 rounded-2xl font-extrabold scale-105 transition-all duration-150 ease-in-out shadow-inner border border-purple-100/20";
+
+      if (seccionId === 'carrito') {
+        renderizarCarrito();
+      }
+    }
+
+    // ==================== LECTURA DE RED CLÁSICA COMPATIBLE BLINDADA ====================
+    function cargarCatalogoServidor() {
+      document.getElementById('catalogo-cargando').classList.remove('hidden');
+      document.getElementById('catalogo-grid').classList.add('hidden');
+
+      fetch(API_URL + "?action=obtenerCatalogo", { redirect: "follow" })
+        .then(res => {
+          return res.text();
+        })
+        .then(text => {
+          let response;
+          try {
+            response = JSON.parse(text);
+          } catch (jsonErr) {
+            console.error("Respuesta no es JSON válido:", text);
+            alert("Atención de Conexión:\nEl enlace de tu Google Apps Script no devuelve datos válidos de catálogo.\n\nAsegúrate de haber ingresado tu URL propia y de haber configurado los permisos de tu Web App.");
+            return;
+          }
+
+          if (response && response.success) {
+            catalogoProductos = response.productos || [];
+            categoriasLocal = response.categorias || [];
+            construirSelectorCategorias();
+            renderizarCatalogo();
+            iniciarCarruselBanner();
+          } else {
+            console.error("Error retornado por servidor:", response ? response.error : "Sin datos");
+          }
+        })
+        .catch(err => {
+          console.error("Fallo de conexión de red:", err);
+          alert("Aviso de Conexión:\nNo se puede conectar con tu servidor de Google Sheets.\n\nVerifica que colocaste tu propia URL real en el código.");
+        })
+        .finally(() => {
+          document.getElementById('catalogo-cargando').classList.add('hidden');
+          document.getElementById('catalogo-grid').classList.remove('hidden');
+        });
+    }
+
+    // ==================== CARRUSEL DINÁMICO DEL BANNER ====================
+    function iniciarCarruselBanner() {
+      if (!catalogoProductos || catalogoProductos.length === 0) return;
+      
+      const productosConImagenes = catalogoProductos.filter(p => p.imagen1);
+      if (productosConImagenes.length === 0) return;
+
+      const imgEl = document.getElementById('carousel-img');
+      if (!imgEl) return;
+      imgEl.src = productosConImagenes[0].imagen1;
+
+      if (intervalCarousel) clearInterval(intervalCarousel);
+
+      intervalCarousel = setInterval(() => {
+        imgEl.classList.add('fade-out-left');
+
+        setTimeout(() => {
+          indexCarousel = (indexCarousel + 1) % productosConImagenes.length;
+          imgEl.src = productosConImagenes[indexCarousel].imagen1;
+          imgEl.classList.remove('fade-out-left');
+        }, 800); 
+
+      }, 4000);
+    }
+
+    // ==================== RENDERIZACIÓN DE CATÁLOGO ====================
+    function construirSelectorCategorias() {
+      const container = document.getElementById('categorias-scroll');
+      container.innerHTML = `<button onclick="filtrarCategoria('Todas')" class="cat-btn px-5 py-2 rounded-full text-base font-semibold whitespace-nowrap border border-[#7D5A94] ${categoriaSeleccionada === 'Todas' ? 'bg-[#7D5A94] text-white' : 'bg-white text-[#7D5A94]'}">Todas</button>`;
+      
+      categoriasLocal.forEach(cat => {
+        const activo = categoriaSeleccionada === cat;
+        container.innerHTML += `
+          <button onclick="filtrarCategoria('${cat}')" class="cat-btn px-5 py-2 rounded-full text-base font-semibold whitespace-nowrap border border-[#7D5A94] ${activo ? 'bg-[#7D5A94] text-white' : 'bg-white text-[#7D5A94]'}">${cat}</button>
+        `;
+      });
+    }
+
+    function filtrarCategoria(cat) {
+      categoriaSeleccionada = cat;
+      construirSelectorCategorias();
+      renderizarCatalogo();
+    }
+
+    function filtrarPorBusqueda() {
+      renderizarCatalogo();
+    }
+
+    function renderizarCatalogo() {
+      const grid = document.getElementById('catalogo-grid');
+      const query = document.getElementById('input-busqueda').value.toLowerCase().trim();
+      
+      grid.innerHTML = "";
+      
+      // Modificación: Agregamos .reverse() al final para invertir el orden de renderizado
+      const filtrados = catalogoProductos.filter(prod => {
+        if (categoriaSeleccionada !== 'Todas' && prod.categoria !== categoriaSeleccionada) return false;
+        if (query && !prod.nombre.toLowerCase().includes(query)) return false;
+        return prod.estado === "Activo";
+      }).reverse();
+
+      if (filtrados.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-16 text-gray-400 italic">
+            Ningún producto disponible bajo este filtro de búsqueda.
+          </div>
+        `;
+        return;
+      }
+
+      filtrados.forEach(prod => {
+        const img = prod.imagen1 || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?q=80&w=250';
+        
+        let etiquetaHtml = "";
+        const skuStr = prod.sku ? String(prod.sku) : "";
+        const idNum = parseInt(skuStr.replace("MIA-", "")) || 0;
+        
+        if (idNum % 3 === 0) {
+          etiquetaHtml = `<span class="absolute top-3 left-3 bg-[#F2846B] text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm z-10 uppercase">🔥 Oferta</span>`;
+        } else if (idNum % 5 === 0) {
+          etiquetaHtml = `<span class="absolute top-3 left-3 bg-[#D4AF37] text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm z-10 uppercase">⭐ Destacado</span>`;
+        } else {
+          etiquetaHtml = `<span class="absolute top-3 left-3 bg-[#7D5A94] text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm z-10 uppercase">✨ Nuevo</span>`;
+        }
+
+        const card = `
+          <div onclick="mostrarDetalleProducto('${prod.sku}')" class="bg-white rounded-3xl p-4 border border-purple-100/50 shadow-sm flex flex-col justify-between relative hover:shadow-md cursor-pointer transition-all">
+            <div>
+              <div class="relative w-full h-48 rounded-2xl overflow-hidden mb-3 bg-purple-50 flex items-center justify-center">
+                ${etiquetaHtml}
+                <img src="${img}" class="w-full h-full object-cover">
+              </div>
+              <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">${prod.sku} | ${prod.categoria}</span>
+              <h3 class="font-magic text-xl font-bold text-[#7D5A94] mt-0.5 leading-tight">${prod.nombre}</h3>
+            </div>
+            <div class="mt-4 border-t border-purple-50/50 pt-3 flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="text-xs text-gray-400 uppercase font-semibold">Precio S/</span>
+                <span class="text-xl font-extrabold text-[#F2846B]">S/ ${parseFloat(prod.precioVenta || 0).toFixed(2)}</span>
+              </div>
+              <button onclick="event.stopPropagation(); solicitarAgregarAlCarrito('${prod.sku}')" class="bg-[#7D5A94] hover:bg-[#68497d] text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors">
+                <span>🛒 Comprar</span>
+              </button>
+            </div>
+          </div>
+        `;
+        grid.innerHTML += card;
+      });
+    }
+
+    // ==================== DETALLES DE PRODUCTO ====================
+    function mostrarDetalleProducto(sku, soloImagenes = false) {
+      const prod = catalogoProductos.find(p => p.sku === sku);
+      if (!prod) return;
+
+      const txtBloque = document.getElementById('det-bloque-texto');
+      const btnComprar = document.getElementById('det-btn-comprar');
+      const modalTitulo = document.getElementById('det-modal-titulo');
+
+      if (soloImagenes) {
+        modalTitulo.textContent = "Imágenes del Producto";
+        txtBloque.classList.add('hidden');
+        btnComprar.classList.add('hidden');
+      } else {
+        modalTitulo.textContent = "Detalles del Producto";
+        txtBloque.classList.remove('hidden');
+        btnComprar.classList.remove('hidden');
+
+        document.getElementById('det-nombre').textContent = prod.nombre;
+        document.getElementById('det-sku-cat').textContent = `${prod.sku} | ${prod.categoria}`;
+        document.getElementById('det-precio').textContent = `S/ ${parseFloat(prod.precioVenta || 0).toFixed(2)}`;
+        document.getElementById('det-descripcion').textContent = prod.descripcion || "Sin descripción por el momento.";
+
+        btnComprar.onclick = function() {
+          cerrarModalDetalle();
+          solicitarAgregarAlCarrito(prod.sku);
+        };
+      }
+
+      const imgPrincipal = document.getElementById('det-img-principal');
+      imgPrincipal.src = prod.imagen1 || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?q=80&w=250';
+
+      const miniaturasContainer = document.getElementById('det-galeria-miniaturas');
+      miniaturasContainer.innerHTML = "";
+      
+      const imagenes = [prod.imagen1, prod.imagen2, prod.imagen3, prod.imagen4].filter(Boolean);
+      
+      if (imagenes.length > 1) {
+        imagenes.forEach(img => {
+          miniaturasContainer.innerHTML += `
+            <img src="${img}" onclick="cambiarImagenDetalle('${img}')" class="w-14 h-14 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-[#7D5A94] flex-shrink-0 transition-all">
+          `;
+        });
+      }
+
+      const modal = document.getElementById('modal-detalle-producto');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100');
+    }
+
+    function cambiarImagenDetalle(imgUrl) {
+      document.getElementById('det-img-principal').src = imgUrl;
+    }
+
+    function cerrarModalDetalle() {
+      const modal = document.getElementById('modal-detalle-producto');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      modal.classList.remove('opacity-100');
+    }
+
+    // ==================== CONFIRMACIÓN DE COMPRA ====================
+    function solicitarAgregarAlCarrito(sku) {
+      const prod = catalogoProductos.find(p => p.sku === sku);
+      if (!prod) return;
+      
+      productoPorAgregar = prod;
+      document.getElementById('conf-prod-nombre').textContent = prod.nombre;
+      
+      const modal = document.getElementById('modal-confirmacion');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100');
+      
+      document.getElementById('btn-confirmar-add').onclick = confirmarAgregarAlCarrito;
+    }
+
+    function cerrarModalConfirmacion() {
+      const modal = document.getElementById('modal-confirmacion');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      modal.classList.remove('opacity-100');
+      productoPorAgregar = null;
+    }
+
+    function confirmarAgregarAlCarrito() {
+      if (!productoPorAgregar) return;
+      
+      const SKU = productoPorAgregar.sku;
+      const index = carrito.findIndex(item => item.sku === SKU);
+      
+      if (index !== -1) {
+        carrito[index].cantidad += 1;
+      } else {
+        carrito.push({
+          sku: SKU,
+          nombre: productoPorAgregar.nombre,
+          precioVenta: productoPorAgregar.precioVenta,
+          precioCompra: productoPorAgregar.precioCompra,
+          categoria: productoPorAgregar.categoria,
+          cantidad: 1
+        });
+      }
+      
+      safeStorageSet('mia_catalog_cart', JSON.stringify(carrito));
+      
+      playChime();
+      actualizarContadorCarrito();
+      cerrarModalConfirmacion();
+      cerrarModalDetalle(); 
+      mostrarMensajeAlerta("¡Agregado con éxito a tu pedido! ✨");
+    }
+
+    function actualizarContadorCarrito() {
+      if (!Array.isArray(carrito)) {
+        carrito = [];
+      }
+      const totalItems = carrito.reduce((sum, item) => sum + (parseInt(item.cantidad) || 0), 0);
+      const contadorEl = document.getElementById('carrito-contador');
+      if (contadorEl) {
+        contadorEl.textContent = totalItems;
+      }
+    }
+
+    function mostrarMensajeAlerta(texto) {
+      const alertDiv = document.createElement("div");
+      alertDiv.className = "fixed top-20 left-1/2 -translate-x-1/2 bg-[#7D5A94] text-white font-bold text-xs px-5 py-3 rounded-full shadow-lg z-50 animate-bounce";
+      alertDiv.textContent = texto;
+      document.body.appendChild(alertDiv);
+      setTimeout(() => alertDiv.remove(), 2500);
+    }
+
+    // ==================== RENDERS DE CARRITO DE COMPRA ====================
+    function renderizarCarrito() {
+      const lista = document.getElementById('carrito-lista');
+      const totales = document.getElementById('carrito-totales');
+      const vacio = document.getElementById('carrito-vacio');
+      const mascota = document.getElementById('mascota-contenedor');
+
+      lista.innerHTML = "";
+
+      if (!Array.isArray(carrito)) {
+        carrito = [];
+      }
+
+      if (carrito.length === 0) {
+        vacio.classList.remove('hidden');
+        totales.classList.add('hidden');
+        mascota.classList.add('hidden');
+        return;
+      }
+
+      vacio.classList.add('hidden');
+      totales.classList.remove('hidden');
+      
+      mascota.classList.remove('hidden');
+      mascota.style.opacity = '1';
+      mascota.style.maxHeight = '300px';
+      mascota.style.margin = '';
+      mascota.style.padding = '';
+
+      const frasesMimi = frasesMascota;
+      const fraseAzar = frasesMimi[Math.floor(Math.random() * frasesMimi.length)];
+      document.getElementById('mascota-frase').textContent = fraseAzar;
+
+      if (window.mimiTimer) clearTimeout(window.mimiTimer);
+      window.mimiTimer = setTimeout(() => {
+        mascota.style.transition = 'opacity 0.8s ease, max-height 0.8s ease, margin 0.8s ease';
+        mascota.style.opacity = '0';
+        mascota.style.maxHeight = '0px';
+        mascota.style.margin = '0px';
+        mascota.style.padding = '0px';
+        setTimeout(() => { mascota.classList.add('hidden'); }, 850);
+      }, 10000); 
+
+      let subtotal = 0;
+
+      carrito.forEach((item, index) => {
+        const precio = parseFloat(item.precioVenta || item["Precio Venta"] || item.precio_venta || 0);
+        const itemTotal = precio * item.cantidad;
+        subtotal += itemTotal;
+
+        const row = `
+          <div class="bg-white p-5 rounded-3xl border border-purple-100 flex flex-col gap-4 shadow-sm">
+            <!-- Fila Superior: Información del Producto -->
+            <div class="border-b border-purple-50/50 pb-3">
+              <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">${item.sku} | ${item.categoria}</span>
+              <h4 onclick="mostrarDetalleProducto('${item.sku}', true)" class="font-magic text-xl font-bold text-[#7D5D99] hover:underline cursor-pointer leading-tight mt-1">${item.nombre}</h4>
+              <p class="text-sm font-semibold text-[#F2846B] mt-1">Precio: S/ ${precio.toFixed(2)} c/u</p>
+            </div>
+            
+            <!-- Fila Inferior: Controles de Cantidad y Total de este Producto -->
+            <div class="flex items-center justify-between gap-4">
+              <!-- Selector de Cantidad Táctil con etiqueta clara -->
+              <div class="flex flex-col gap-1.5">
+                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Cantidad</span>
+                <div class="flex items-center bg-purple-50/40 rounded-xl p-1 border border-purple-100/50">
+                  <button onclick="modificarCantidadItem(${index}, -1)" class="w-9 h-9 rounded-lg bg-white border border-purple-100 flex items-center justify-center font-extrabold text-[#7D5A94] hover:bg-purple-50 active:scale-95 transition-transform" title="Disminuir cantidad">-</button>
+                  <span class="w-10 text-center text-base font-extrabold text-gray-800">${item.cantidad}</span>
+                  <button onclick="modificarCantidadItem(${index}, 1)" class="w-9 h-9 rounded-lg bg-white border border-purple-100 flex items-center justify-center font-extrabold text-[#7D5A94] hover:bg-purple-50 active:scale-95 transition-transform" title="Aumentar cantidad">+</button>
+                </div>
+              </div>
+
+              <!-- Total calculado de este producto -->
+              <div class="text-right">
+                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wide block">Total producto</span>
+                <span class="text-lg font-extrabold text-[#7D5A94]">S/ ${itemTotal.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        lista.innerHTML += row;
+      });
+
+      document.getElementById('totales-subtotal').textContent = `S/ ${subtotal.toFixed(2)}`;
+      document.getElementById('totales-total').textContent = `S/ ${subtotal.toFixed(2)}`;
+    }
+
+    function modificarCantidadItem(index, valor) {
+      carrito[index].cantidad += valor;
+      if (carrito[index].cantidad <= 0) {
+        carrito.splice(index, 1);
+      }
+      safeStorageSet('mia_catalog_cart', JSON.stringify(carrito));
+      actualizarContadorCarrito();
+      renderizarCarrito();
+    }
+
+    function vaciarCarrito() {
+      if (!confirm("¿Deseas quitar todos los productos de tu pedido?")) return;
+      carrito = [];
+      safeStorageRemove('mia_catalog_cart');
+      actualizarContadorCarrito();
+      renderizarCarrito();
+    }
+
+    // ==================== CHECKOUT SIMPLIFICADO ====================
+    function abrirModalCheckout() {
+      const dniGuardado = safeStorageGet('mia_lookup_dni');
+      if (dniGuardado) {
+        document.getElementById('form-dni').value = dniGuardado;
+      }
+
+      const modal = document.getElementById('modal-checkout');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100');
+    }
+
+    function cerrarModalCheckout() {
+      const modal = document.getElementById('modal-checkout');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      modal.classList.remove('opacity-100');
+    }
+
+    // ==================== NO REGISTRADO MODAL INTERFACES ====================
+    function abrirModalNoRegistrado() {
+      const modal = document.getElementById('modal-no-registrado');
+      if (modal) {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100');
+      }
+    }
+
+    // ==================== SELECCIÓN DE PESTAÑAS (TABS) EN SEGUIMIENTO ====================
+    function cambiarTabPedidos(tabId) {
+      playNavTap();
+      activeTabPedidos = tabId;
+
+      const tabActivos = document.getElementById('tab-pedidos-activos');
+      const tabHistorial = document.getElementById('tab-pedidos-historial');
+      const panelActivos = document.getElementById('panel-pedidos-activos');
+      const panelHistorial = document.getElementById('panel-pedidos-historial');
+
+      if (tabId === 'activos') {
+        tabActivos.className = "flex-1 py-3 text-center border-b-2 font-bold text-sm transition-all focus:outline-none border-[#7D5A94] text-[#7D5A94]";
+        tabHistorial.className = "flex-1 py-3 text-center border-b-2 font-bold text-sm transition-all focus:outline-none border-transparent text-gray-400";
+        panelActivos.classList.remove('hidden');
+        panelActivos.classList.add('block');
+        panelHistorial.classList.remove('block');
+        panelHistorial.classList.add('hidden');
+      } else {
+        tabActivos.className = "flex-1 py-3 text-center border-b-2 font-bold text-sm transition-all focus:outline-none border-transparent text-gray-400";
+        tabHistorial.className = "flex-1 py-3 text-center border-b-2 font-bold text-sm transition-all focus:outline-none border-emerald-600 text-emerald-800";
+        panelActivos.classList.remove('block');
+        panelActivos.classList.add('hidden');
+        panelHistorial.classList.remove('hidden');
+        panelHistorial.classList.add('block');
+      }
+    }
+
+    function cerrarModalNoRegistrado() {
+      const modal = document.getElementById('modal-no-registrado');
+      if (modal) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.classList.remove('opacity-100');
+      }
+    }
+
+    function redirigirRegistroWhatsApp() {
+      cerrarModalNoRegistrado();
+      const numeroCelularAdmin = "51983663828";
+      const mensaje = "Hola me gustaria que me puedas registrar, quiero ser parte de la familia MiaShop";
+      const link = `https://wa.me/${numeroCelularAdmin}?text=${encodeURIComponent(mensaje)}`;
+      
+      // CAMBIADO: window.location.href en lugar de window.open para evitar bloqueadores de ventanas emergentes en móviles
+      window.location.href = link;
+    }
+
+    // ==================== VERIFICACIÓN Y ENVÍO AUTOMÁTICO A APPS SCRIPT ====================
+    function procesarConfirmacionPedido() {
+      const dni = document.getElementById('form-dni').value.trim();
+      const btnConfirmar = document.getElementById('btn-procesar-checkout');
+
+      if (!dni) {
+        alert("Por favor, introduce tu número de identidad para culminar.");
+        return;
+      }
+
+      if (!Array.isArray(carrito) || carrito.length === 0) {
+        alert("El carrito está vacío.");
+        return;
+      }
+
+      btnConfirmar.disabled = true;
+      btnConfirmar.textContent = "Verificando... 🔍";
+
+      fetch(`${API_URL}?action=verificarCliente&dni=${dni}`, { redirect: "follow" })
+        .then(res => res.text())
+        .then(text => {
+          let response;
+          try {
+            response = JSON.parse(text);
+          } catch(e) {
+            console.error("Error interpretando verificación:", e);
+            response = { success: false }; 
+          }
+
+          if (response && response.success) {
+            const nombreClienteValido = response.nombre || "Clienta Registrada";
+            ejecutarRegistroDePedido(dni, nombreClienteValido);
+          } else {
+            cerrarModalCheckout();
+            abrirModalNoRegistrado();
+          }
+        })
+        .catch(err => {
+          console.error("Error verificando cliente:", err);
+          alert("Hubo un problema de conexión al verificar tu identidad. Por favor intenta de nuevo.");
+        })
+        .finally(() => {
+          btnConfirmar.disabled = false;
+          btnConfirmar.textContent = "Confirmar";
+        });
+    }
+
+    function ejecutarRegistroDePedido(dni, nombreCliente) {
+      let totalVenta = 0;
+      let totalCompra = 0;
+      const detalleProductos = carrito.map(item => {
+        const precioV = parseFloat(item.precioVenta || item["Precio Venta"] || item.precio_venta || 0);
+        const precioC = parseFloat(item.precioCompra || item["Precio Comra"] || item["Precio Compra"] || item.precio_compra || 0);
+        totalVenta += (precioV * item.cantidad);
+        totalCompra += (precioC * item.cantidad);
+        return { sku: item.sku, nombre: item.nombre, cantidad: item.cantidad };
+      });
+
+      const pedidoDTO = {
+        dniCliente: dni,
+        nombreCliente: nombreCliente, 
+        departamento: "", 
+        detalleProductos: detalleProductos,
+        categoriaPrincipal: carrito.length > 0 ? carrito[0].categoria : "General",
+        precioCompra: totalCompra,
+        precioVenta: totalVenta,
+        metodoPago: "Contraentrega (Efectivo)",
+        aportes: "Pedido realizado desde el catálogo web."
+      };
+
+      safeStorageSet('mia_lookup_dni', dni);
+      cerrarModalCheckout();
+      mostrarMensajeAlerta("Invocando pedido en el sistema principal... 🪄");
+
+      fetch(`${API_URL}?action=crearPedido&datos=${encodeURIComponent(JSON.stringify(pedidoDTO))}`, { redirect: "follow" })
+        .then(res => res.json())
+        .then(response => {
+          if (response.success) {
+            pedidoDTO.nombreCliente = response.nombreCliente || nombreCliente || "Clienta MiaShop";
+            generarEnlaceWhatsApp(pedidoDTO);
+            
+            carrito = [];
+            safeStorageRemove('mia_catalog_cart');
+            actualizarContadorCarrito();
+            
+            document.getElementById('input-dni-consulta').value = dni;
+            cambiarSeccion('pedidos');
+            consultarPedidosDNI();
+          } else {
+            alert("Ocurrió un error en el registro de tu pedido: " + response.error);
+          }
+        })
+        .catch(err => {
+          console.error("Fallo de red al registrar pedido: ", err);
+        });
+    }
+
+    // ==================== FORMATO DE WHATSAPP AMIGABLE Y ORDENADO ====================
+    function generarEnlaceWhatsApp(pedido) {
+      const numeroCelularAdmin = "51983663828";
+      let listaTexto = "";
+      pedido.detalleProductos.forEach(i => {
+        listaTexto += `• *${i.nombre}* (Cant: ${i.cantidad})\n`;
+      });
+      
+      const mensaje = `✨ *¡Hola MiaShop! Acabo de registrar mi pedido* ✨\n\n` +
+                      `🧙‍♀️ *Datos de la Clienta:*\n` +
+                      `👤 *Nombre:* ${pedido.nombreCliente || "Nueva Compradora"}\n` +
+                      `💳 *DNI/RUC:* ${pedido.dniCliente}\n\n` +
+                      `📦 *Mis Productos Seleccionados:*\n${listaTexto}\n` +
+                      `💰 *Total a pagar:* S/ ${pedido.precioVenta.toFixed(2)}\n\n` +
+                      `⚙️ _Pedido enviado automáticamente desde el catálogo virtual MiaShop._`;
+
+      const link = `https://wa.me/${numeroCelularAdmin}?text=${encodeURIComponent(mensaje)}`;
+      
+      // CAMBIADO: window.location.href en lugar de window.open para evitar bloqueadores de ventanas emergentes en móviles
+      window.location.href = link;
+    }
+
+    // ==================== SEGUIMIENTO DE PEDIDOS Y CACHÉ LOCAL ====================
+    function consultarPedidosDNI() {
+      const dni = document.getElementById('input-dni-consulta').value.trim();
+      if (!dni) {
+        alert("Ingresa tu DNI para localizar tus pedidos.");
+        return;
+      }
+
+      document.getElementById('consulta-loader').classList.remove('hidden');
+      document.getElementById('consulta-resultados').classList.add('hidden');
+      document.getElementById('consulta-vacio').classList.add('hidden');
+      document.getElementById('tabs-pedidos-container').classList.add('hidden');
+
+      fetch(`${API_URL}?action=consultarPedidosDNI&dni=${dni}`, { redirect: "follow" })
+        .then(res => res.json())
+        .then(response => {
+          if (response.success) {
+            pedidosConsultados = response.pedidos || [];
+            renderizarPedidosConsulta(response.pedidos);
+          } else {
+            console.error("Fallo del servidor: ", response.error);
+          }
+        })
+        .catch(err => console.error(err))
+        .finally(() => {
+          document.getElementById('consulta-loader').classList.add('hidden');
+        });
+    }
+
+    function renderizarPedidosConsulta(pedidos) {
+      const activosContainer = document.getElementById('lista-pedidos-activos');
+      const historialContainer = document.getElementById('lista-pedidos-historial');
+      const greetingContainer = document.getElementById('greeting-container');
+      const greetingText = document.getElementById('greeting-text');
+      
+      activosContainer.innerHTML = "";
+      historialContainer.innerHTML = "";
+
+      const activos = pedidos.filter(p => p.estadoEnvio !== "Entregado");
+      const completados = pedidos.filter(p => p.estadoEnvio === "Entregado");
+
+      // Actualizar contadores numéricos en las pestañas
+      document.getElementById('count-activos').textContent = activos.length;
+      document.getElementById('count-historial').textContent = completados.length;
+
+      if (pedidos.length === 0) {
+        document.getElementById('consulta-vacio').classList.remove('hidden');
+        greetingContainer.classList.add('hidden');
+        document.getElementById('tabs-pedidos-container').classList.add('hidden');
+        return;
+      }
+
+      // Habilitar pestañas y saludo personalizado
+      document.getElementById('tabs-pedidos-container').classList.remove('hidden');
+      document.getElementById('consulta-resultados').classList.remove('hidden');
+
+      // Sanitizar saludo de clienta
+      if (pedidos.length > 0) {
+        const rawNombre = pedidos[0].nombreCliente || "Clienta";
+        const nombreLimpio = rawNombre.includes("(No registrada)") ? "Clienta" : rawNombre;
+        greetingText.innerHTML = `👋 ¡Un gusto verte de nuevo, <span class="font-extrabold text-[#7D5A94]">${nombreLimpio}</span>! ✨`;
+        greetingContainer.classList.remove('hidden');
+      }
+
+      // Mantener por defecto la pestaña de activos al consultar
+      cambiarTabPedidos('activos');
+
+      // Renderizar Pedidos Activos
+      if (activos.length === 0) {
+        activosContainer.innerHTML = `<p class="text-sm text-gray-400 italic text-center py-8 bg-white rounded-3xl border border-purple-50 shadow-sm">No tienes pedidos en progreso de despacho.</p>`;
+      } else {
+        activos.forEach(p => {
+          let listaHtml = "";
+          try {
+            const items = JSON.parse(p.detalleProductos);
+            items.forEach(i => {
+              // CAMBIO DE DISEÑO: Se formatea la cantidad como "unid." o "unids." para mayor claridad visual
+              const sufijo = parseInt(i.cantidad) === 1 ? "unid." : "unids.";
+              listaHtml += `• ${i.nombre} <span class="text-purple-600 font-semibold">(${i.cantidad} ${sufijo})</span><br>`;
+            });
+          } catch(e) { listaHtml = "Formato de producto no compatible"; }
+
+          const fases = ['Pendiente', 'En Proceso', 'Enviado'];
+          const faseIndex = fases.indexOf(p.estadoEnvio);
+          
+          // Mapear el estado a etiqueta textual clara para el usuario mayor
+          const fNombre = p.estadoEnvio === 'Pendiente' ? 'Compra ⌛' : p.estadoEnvio === 'En Proceso' ? 'Empaque 📦' : 'En Ruta 🚚';
+          let textoEstadoActual = `Estado actual: <span class="font-extrabold text-[#7D5A94]">${fNombre}</span>`;
+
+          // Generación de la línea de tiempo conectada (con resaltado único de la fase activa)
+          let timelineHtml = `
+            <div class="space-y-3 pt-2">
+              <p class="text-xs font-semibold text-gray-500 bg-purple-50/60 py-1.5 px-3 rounded-lg border border-purple-100/50 inline-block">
+                📍 ${textoEstadoActual}
+              </p>
+              
+              <div class="relative flex items-center justify-between mt-6 px-4">
+                <!-- Línea conectora base -->
+                <div class="absolute left-6 right-6 top-4 h-1 bg-gray-200 z-0"></div>
+                <!-- Línea de progreso de color -->
+                <div class="absolute left-6 top-4 h-1 bg-[#7D5A94] z-0 transition-all duration-500" style="width: ${faseIndex === 0 ? '0%' : faseIndex === 1 ? '50%' : '100%'}"></div>
+          `;
+
+          fases.forEach((f, i) => {
+            const pasoCompletado = i <= faseIndex;
+            const esPasoActual = i === faseIndex; // Destacar SOLAMENTE el paso actual
+
+            let circuloClase = "";
+            let pulsoHtml = "";
+
+            if (esPasoActual) {
+              // Animación de pulso, tamaño mayor y borde con anillo para el paso activo
+              circuloClase = "bg-[#7D5A94] text-white w-10 h-10 ring-4 ring-purple-200 scale-110 font-bold z-10 shadow-md transform transition-all";
+              pulsoHtml = `<span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F2846B] opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-[#F2846B]"></span></span>`;
+            } else if (pasoCompletado) {
+              // Pasos completados anteriores
+              circuloClase = "bg-[#7D5A94] text-white w-8 h-8 z-10 font-semibold shadow-sm";
+            } else {
+              // Pasos futuros no alcanzados
+              circuloClase = "bg-gray-100 text-gray-400 w-8 h-8 z-10 font-medium border border-gray-200";
+            }
+
+            const etiquetaColor = esPasoActual ? 'text-[#7D5A94] font-extrabold text-xs' : (pasoCompletado ? 'text-purple-400 font-medium text-xs' : 'text-gray-400 text-xs');
+            const etiquetaTexto = f === 'Pendiente' ? 'Compra ⌛' : f === 'En Proceso' ? 'Empaque 📦' : 'En Ruta 🚚';
+
+            timelineHtml += `
+              <div class="flex flex-col items-center relative">
+                <div class="rounded-full flex items-center justify-center text-xs relative transition-all duration-300 ${circuloClase}">
+                  ${pulsoHtml}
+                  ${i + 1}
+                </div>
+                <span class="mt-2 text-center whitespace-nowrap ${etiquetaColor}">${etiquetaTexto}</span>
+              </div>
+            `;
+          });
+
+          timelineHtml += `
+              </div>
+            </div>
+          `;
+
+          const card = `
+            <div class="bg-white p-5 rounded-2xl border border-purple-100 shadow-sm space-y-3">
+              <div class="flex justify-between items-center border-b pb-2 text-sm">
+                <span class="font-bold text-[#7D5A94]">N° de Pedido: ${p.id.replace("PED-", "")}</span>
+                <span class="text-gray-400 font-medium">${p.fecha.substring(0,10)}</span>
+              </div>
+              <div class="text-base font-medium leading-relaxed">${listaHtml}</div>
+              <div class="flex justify-between items-center text-base pt-2 border-t">
+                <span class="text-xs text-gray-400 font-semibold uppercase">Total a pagar:</span>
+                <span class="font-extrabold text-[#F2846B]">S/ ${parseFloat(p.precioVenta).toFixed(2)}</span>
+              </div>
+              ${timelineHtml}
+            </div>
+          `;
+          activosContainer.innerHTML += card;
+        });
+      }
+
+      // Renderizar Historial y Boletas
+      if (completados.length === 0) {
+        historialContainer.innerHTML = `<p class="text-sm text-gray-400 italic text-center py-8 bg-white rounded-3xl border border-purple-50 shadow-sm">No tienes boletas archivadas.</p>`;
+      } else {
+        completados.forEach(p => {
+          let itemsHtml = "";
+          try {
+            JSON.parse(p.detalleProductos).forEach(i => {
+              // CAMBIO DE DISEÑO: Se formatea la cantidad como "unid." o "unids." para mayor claridad visual
+              const sufijo = parseInt(i.cantidad) === 1 ? "unid." : "unids.";
+              itemsHtml += `• ${i.nombre} <span class="text-purple-600 font-semibold">(${i.cantidad} ${sufijo})</span><br>`;
+            });
+          } catch(e) {}
+
+          const row = `
+            <div class="bg-emerald-50/20 p-5 rounded-3xl border border-emerald-100 flex flex-col space-y-4 shadow-sm">
+              <div class="flex justify-between items-center border-b border-emerald-100/50 pb-2">
+                <div class="flex items-center gap-1.5 font-bold text-emerald-800 text-sm">
+                  <span>✅ Entregado</span>
+                  <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">ID: ${p.id}</span>
+                </div>
+                <span class="text-[10px] text-gray-400 font-medium">${p.fecha.substring(0, 10)}</span>
+              </div>
+              
+              <div class="text-sm text-gray-700 font-medium space-y-1">
+                ${itemsHtml}
+              </div>
+
+              <div class="flex items-center justify-between pt-3 border-t border-emerald-100/50 gap-4">
+                <div>
+                  <p class="text-[10px] text-gray-400 uppercase font-semibold">Total Cobrado</p>
+                  <p class="font-extrabold text-[#7D5A94] text-lg">S/ ${parseFloat(p.precioVenta).toFixed(2)}</p>
+                </div>
+                <button onclick="abrirBoleta('${p.id}')" class="bg-[#7D5A94] hover:bg-[#68497d] text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-sm flex items-center gap-1.5 transition-all flex-shrink-0">
+                  📄 Ver Boleta
+                </button>
+              </div>
+            </div>
+          `;
+          historialContainer.innerHTML += row;
+        });
+      }
+    }
+
+    // ==================== VISUALIZADOR DE BOLETAS VIRTUALES ====================
+    function abrirBoleta(idPedido) {
+      const loaderEspera = document.getElementById('modal-espera-boleta');
+      loaderEspera.classList.remove('opacity-0', 'pointer-events-none');
+      loaderEspera.classList.add('opacity-100');
+
+      setTimeout(() => {
+        loaderEspera.classList.add('opacity-0', 'pointer-events-none');
+        loaderEspera.classList.remove('opacity-100');
+
+        const pedido = pedidosConsultados.find(p => p.id === idPedido);
+        if (!pedido) {
+          alert("No se pudo cargar la boleta. Por favor, realiza la consulta de tu DNI nuevamente.");
+          return;
+        }
+
+        document.getElementById('bol-id').textContent = pedido.id;
+        document.getElementById('bol-fecha').textContent = pedido.fecha.substring(0, 10);
+        document.getElementById('bol-dni').textContent = pedido.dniCliente;
+        document.getElementById('bol-nombre').textContent = pedido.nombreCliente;
+        document.getElementById('bol-total').textContent = `S/ ${parseFloat(pedido.precioVenta).toFixed(2)}`;
+
+        const itemsContainer = document.getElementById('bol-items');
+        itemsContainer.innerHTML = "";
+        
+        try {
+          JSON.parse(pedido.detalleProductos).forEach(i => {
+            // CAMBIO DE DISEÑO: Se formatea la cantidad como "unid." o "unids." en la boleta virtual
+            itemsContainer.innerHTML += `<div class="flex justify-between py-1 border-b border-purple-50/20"><span>${i.nombre}</span><span class="font-semibold text-gray-500">${i.cantidad} ${parseInt(i.cantidad) === 1 ? 'unid.' : 'unids.'}</span></div>`;
+          });
+        } catch(e) {}
+
+        const modal = document.getElementById('modal-boleta');
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100');
+      }, 600); 
+    }
+
+    function cerrarModalBoleta() {
+      const modal = document.getElementById('modal-boleta');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      modal.classList.remove('opacity-100');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('btn-sonido').textContent = soundEnabled ? '🔊' : '🔇';
+      verificarModoNocturnoAutomatico();
+      actualizarContadorCarrito();
+      cambiarSeccion('catalogo');
+      cargarCatalogoServidor();
+      inicializarEfectoBanner();
+
+      // Autocompleta el DNI si ya hay una compra registrada en el celular para mejorar la accesibilidad
+      const dniGuardado = safeStorageGet('mia_lookup_dni');
+      if (dniGuardado) {
+        const inputConsulta = document.getElementById('input-dni-consulta');
+        if (inputConsulta) inputConsulta.value = dniGuardado;
+      }
+    });
+  </script>
+</body>
+</html>
