@@ -1,0 +1,21 @@
+{
+  "short_name": "MiaShop",
+  "name": "MiaShop - Catálogo de Importaciones",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#FDFBFD",
+  "theme_color": "#7D5A94",
+  "display": "standalone",
+  "orientation": "portrait"
+}
